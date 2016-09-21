@@ -52,7 +52,7 @@ service RouteGuide {
   // streamed rather than returned at once (e.g. in a response message with a
   // repeated field), as the rectangle may cover a large area and contain a
   // huge number of features.
-  rpc ListFeatures(Rectangle) returns (stream Feature) {}
+  rpc ListFeatures(Rectangle) returns (stream Point) {}
 
   // A client-to-server streaming RPC.
   //

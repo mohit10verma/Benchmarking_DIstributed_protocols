@@ -45,6 +45,7 @@
 #include <grpc++/security/credentials.h>
 #include "helper.h"
 #include "route_guide.grpc.pb.h"
+#include "mytimer.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -102,6 +103,7 @@ class RouteGuideClient {
     routeguide::Rectangle rect;
     Feature feature;
     ClientContext context;
+    Point p;
 
     rect.mutable_lo()->set_latitude(400000000);
     rect.mutable_lo()->set_longitude(-750000000);
@@ -110,17 +112,20 @@ class RouteGuideClient {
     std::cout << "Looking for features between 40, -75 and 42, -73"
               << std::endl;
 
-    std::unique_ptr<ClientReader<Feature> > reader(
+    uint64_t begin = GetRDTSC();
+    std::unique_ptr<ClientReader<Point> > reader(
         stub_->ListFeatures(&context, rect));
-    while (reader->Read(&feature)) {
-      std::cout << "Found feature called "
+    while (reader->Read(&p)) {
+      /*std::cout << "Found feature called "
                 << feature.name() << " at "
                 << feature.location().latitude()/kCoordFactor_ << ", "
-                << feature.location().longitude()/kCoordFactor_ << std::endl;
+                << feature.location().longitude()/kCoordFactor_ << std::endl;*/
     }
     Status status = reader->Finish();
+    uint64_t end = GetRDTSC();
     if (status.ok()) {
       std::cout << "ListFeatures rpc succeeded." << std::endl;
+      std::cout << end-begin<< std::endl;
     } else {
       std::cout << "ListFeatures rpc failed." << std::endl;
     }
@@ -130,31 +135,38 @@ class RouteGuideClient {
     Point point;
     RouteSummary stats;
     ClientContext context;
-    const int kPoints = 10;
+    const int kPoints = 500;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
     std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> feature_distribution(
         0, feature_list_.size() - 1);
-    std::uniform_int_distribution<int> delay_distribution(
-        500, 1500);
+    /*    std::uniform_int_distribution<int> delay_distribution(
+	  500, 1500);*/
 
     std::unique_ptr<ClientWriter<Point> > writer(
         stub_->RecordRoute(&context, &stats));
+
+    uint64_t begin = GetRDTSC();
     for (int i = 0; i < kPoints; i++) {
       const Feature& f = feature_list_[feature_distribution(generator)];
-      std::cout << "Visiting point "
+      /*std::cout << "Visiting point "
                 << f.location().latitude()/kCoordFactor_ << ", "
-                << f.location().longitude()/kCoordFactor_ << std::endl;
+                << f.location().longitude()/kCoordFactor_ << std::endl;*/
       if (!writer->Write(f.location())) {
         // Broken stream.
         break;
       }
+      /*
       std::this_thread::sleep_for(std::chrono::milliseconds(
-          delay_distribution(generator)));
+      delay_distribution(generator)));*/
     }
     writer->WritesDone();
     Status status = writer->Finish();
+
+    uint64_t end = GetRDTSC();
+    std::cout<< end-begin<<std::endl;
+
     if (status.ok()) {
       std::cout << "Finished trip with " << stats.point_count() << " points\n"
                 << "Passed " << stats.feature_count() << " features\n"
@@ -234,18 +246,18 @@ int main(int argc, char** argv) {
   // Expect only arg: --db_path=path/to/route_guide_db.json.
   std::string db = routeguide::GetDbFileContent(argc, argv);
   RouteGuideClient guide(
-      grpc::CreateChannel("localhost:50051",
+      grpc::CreateChannel("cs838fall2016group123.eastus.cloudapp.azure.com:50051",
                           grpc::InsecureChannelCredentials()),
       db);
 
-  std::cout << "-------------- GetFeature --------------" << std::endl;
-  guide.GetFeature();
+  //  std::cout << "-------------- GetFeature --------------" << std::endl;
+  //guide.GetFeature();
   std::cout << "-------------- ListFeatures --------------" << std::endl;
   guide.ListFeatures();
-  std::cout << "-------------- RecordRoute --------------" << std::endl;
-  guide.RecordRoute();
-  std::cout << "-------------- RouteChat --------------" << std::endl;
-  guide.RouteChat();
+  //  std::cout << "-------------- RecordRoute --------------" << std::endl;
+  //guide.RecordRoute();
+  //std::cout << "-------------- RouteChat --------------" << std::endl;
+  //guide.RouteChat();
 
   return 0;
 }
