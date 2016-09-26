@@ -1,6 +1,7 @@
 //============================================================================
 // Name        : UDPEchoClient.cpp
 // Author      : Mohit
+// modified by kshiteejm
 //============================================================================
 
 #include <cstdlib>
@@ -115,13 +116,15 @@ int connect(int argc, char* argv[]) {
 	}
 	string input;
 	while (getline(myfile,input)) {
-	  //		cin >> input;
-
-        Packet packet;
-        packet.length = input.length() + 1;
-        packet.seq_num = ++global_seq_num;
+	    // cin >> input;
+        int length = input.length() + 1 + 2*sizeof(int);
+        Packet packet(length, ++global_seq_num);
+        // packet.length = input.length() + 1;
+        // packet.seq_num = ++global_seq_num;
         strcpy(packet.data, input.c_str());
-        int rc = send_reliable(s, (char *) &packet, sizeof(int) * 2 + sizeof(packet.data), remoteServAddr);
+        // int rc = send_reliable(s, (char *) &packet, sizeof(int) * 2 + sizeof(packet.data), remoteServAddr);
+        char* out = serialize(&packet); 
+        int rc = send_reliable(s, out, length, remoteServAddr);
 		if (rc < 0) {
 			cout << argv[0] << ": cannot send data " << input << endl;
 			close(s);
@@ -151,8 +154,19 @@ void gettimetomarshall(char* filename)
 
 int main(int argc, char* argv[]) {
         SetAffinity(0);
-        // output name
+        
+        // time to marshal        
         // gettimetomarshall(argv[1]);
+       
+        // Sample Usage of Packet with serialize/deserialize
+        /* 
+        char d[] = {0,0,0,0,9,0,0,0,99};
+        cout<<sizeof(d)<<endl;
+        Packet* test = deserialize(d);
+        cout<<test->data[0]<<endl;
+        */
+
+        // output name
         identify(argv[0]);
 	
         // send strings from command line

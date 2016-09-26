@@ -1,6 +1,7 @@
 //============================================================================
 // Name        : UDPEchoServer.cpp
 // Author      : Mohit
+// modified by kshiteejm
 //============================================================================
 
 #include <cstdlib>
@@ -26,7 +27,7 @@ void identify(char *exeName)
 
 class UDPServer {
 private:
-  static const short unsigned int BufferSize = sizeof(int)*2 + 1460;
+    static const short unsigned int BufferSize = sizeof(int)*2 + 65507;
 	uint16_t m_port;
 	char m_buffer[BufferSize];
 	int m_socket;
@@ -57,8 +58,8 @@ public:
 	// bind server to port for any address
 	void bind();
 	// receive data and provided it in internal buffer
-	const char *receive(sockaddr_in* clientAddress, unsigned int len);
-	const Packet *receive_reliable();
+	const char* receive(sockaddr_in* clientAddress, unsigned int len);
+	const Packet* receive_reliable();
 	void do_processing(const Packet*);
 	bool should_drop();
 	void send_ack(sockaddr_in clientAddress, unsigned int len);
@@ -93,7 +94,7 @@ void UDPServer::bind()
 	m_alreadyBound = true;
 }
 
-const char *UDPServer::receive(sockaddr_in* clientAddress, unsigned int len)
+const char* UDPServer::receive(sockaddr_in* clientAddress, unsigned int len)
 {
 	// throw exception, if server not yet bound
 	if(!m_alreadyBound){
@@ -101,13 +102,13 @@ const char *UDPServer::receive(sockaddr_in* clientAddress, unsigned int len)
 	}
 
 	// clear buffer and receive messages
-	//clearBuffer();
-	int n = recvfrom(m_socket, m_buffer, BufferSize, 0, (struct sockaddr *) clientAddress, &len );
+	// clearBuffer();
+	int n = recvfrom(m_socket, m_buffer, BufferSize, 0, (struct sockaddr *) clientAddress, &len);
 	if (n < 0) {
 		// received dirty data
 		return NULL;
 	}
-	return m_buffer;
+    return m_buffer;
 }
 
 bool UDPServer::should_drop() {
@@ -121,7 +122,7 @@ void UDPServer::send_ack(sockaddr_in clientAddress, unsigned int len) {
 	sendto(m_socket, ack, 1, 0, (struct sockaddr *) &clientAddress, len);
 }
 
-const Packet *UDPServer::receive_reliable()
+const Packet* UDPServer::receive_reliable()
 {
 	Packet* result;
 	struct sockaddr_in clientAddress;
@@ -129,7 +130,8 @@ const Packet *UDPServer::receive_reliable()
 	while (1) {
 		this->receive(&clientAddress, sizeof (clientAddress));
 		if (!should_drop()) {
-			result = (Packet*) m_buffer;
+			// result = (Packet*) m_buffer;
+            result = deserialize(m_buffer);
 			if (result->seq_num > global_seq_num) {
 				global_seq_num = result->seq_num;
 				this->send_ack(clientAddress, sizeof (clientAddress));
@@ -147,7 +149,7 @@ const Packet *UDPServer::receive_reliable()
 
 void UDPServer::do_processing(const Packet* pkt) {
 	//print only if new seq number
-	cout << pkt->seq_num << pkt->data << pkt->length <<endl;
+	cout << pkt->seq_num << pkt->data << pkt->length << endl;
 	//cout << "Received data :|" << pkt->data << "|" << endl;
 }
 
@@ -170,8 +172,8 @@ int main(int argc, char* argv[]) {
 	try{
 		server.bind();
 		while(1){
-			const Packet *packet = server.receive_reliable();
-			if (packet){
+			const Packet* packet = server.receive_reliable();
+			if (packet) {
 				server.do_processing(packet);
 			} else {
 				cout << "Packet dropped!" << endl;
