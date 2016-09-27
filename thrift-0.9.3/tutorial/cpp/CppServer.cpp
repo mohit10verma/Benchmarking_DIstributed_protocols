@@ -35,6 +35,7 @@
 #include <sstream>
 
 #include "../gen-cpp/Calculator.h"
+#include "mytimer.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -51,6 +52,14 @@ public:
   CalculatorHandler() {}
 
   void ping() { cout << "ping()" << endl; }
+
+  void SayHello(string& reply, const string& req) {
+    //    uint64_t begin = GetRDTSC();
+    reply = req;
+    //    uint64_t end = GetRDTSC();
+    //    std::cout<< "server begin:"<<begin<<std::endl;
+    //    std::cout<< "server end:"<<end<<std::endl;
+  }
 
   int32_t add(const int32_t n1, const int32_t n2) {
     cout << "add(" << n1 << ", " << n2 << ")" << endl;

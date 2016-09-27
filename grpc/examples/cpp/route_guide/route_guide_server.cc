@@ -37,6 +37,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <fstream>
 
 #include <grpc/grpc.h>
 #include <grpc++/server.h>
@@ -54,8 +55,10 @@ using grpc::ServerReaderWriter;
 using grpc::ServerWriter;
 using grpc::Status;
 using routeguide::Point;
+using routeguide::Point1;
 using routeguide::Feature;
 using routeguide::Rectangle;
+using routeguide::Rectangle1;
 using routeguide::RouteSummary;
 using routeguide::RouteNote;
 using routeguide::RouteGuide;
@@ -129,6 +132,27 @@ class RouteGuideImpl final : public RouteGuide::Service {
     return Status::OK;
   }
 
+  Status ListFeatures1(ServerContext* context,
+                      const routeguide::Rectangle1* rectangle1,
+                      ServerWriter<Point1>* writer) override {
+    //    std::cout << "I am called "<< std::endl;
+    int size = rectangle1->size();
+    std::ifstream myfile("1KB.txt");
+    if (!myfile.is_open()) {
+	  std::cerr << "file cannot be opened" << std::endl;
+    }    
+    std::string data;
+    getline(myfile,data);
+    Point1 p;
+    p.set_data(data);
+
+    for (int i = 0; i< size; i++) {      
+      writer->Write(p);
+    }
+    return Status::OK;
+  }
+
+
   Status RecordRoute(ServerContext* context, ServerReader<Point>* reader,
                      RouteSummary* summary) override {
     Point point;
@@ -158,6 +182,19 @@ class RouteGuideImpl final : public RouteGuide::Service {
 
     return Status::OK;
   }
+
+  Status RecordRoute1(ServerContext* context, ServerReader<Point1>* reader,
+                     Rectangle1* rect1) override {
+    Point1 point;
+    int point_count = 0;
+
+    while (reader->Read(&point)) {
+      point_count++;
+    }
+    rect1->set_size(point_count);
+    return Status::OK;
+  }
+
 
   Status RouteChat(ServerContext* context,
                    ServerReaderWriter<RouteNote, RouteNote>* stream) override {

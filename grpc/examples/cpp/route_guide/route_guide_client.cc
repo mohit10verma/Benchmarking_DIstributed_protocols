@@ -37,6 +37,7 @@
 #include <random>
 #include <string>
 #include <thread>
+#include <fstream>
 
 #include <grpc/grpc.h>
 #include <grpc++/channel.h>
@@ -54,8 +55,10 @@ using grpc::ClientReaderWriter;
 using grpc::ClientWriter;
 using grpc::Status;
 using routeguide::Point;
+using routeguide::Point1;
 using routeguide::Feature;
 using routeguide::Rectangle;
+using routeguide::Rectangle1;
 using routeguide::RouteSummary;
 using routeguide::RouteNote;
 using routeguide::RouteGuide;
@@ -87,7 +90,7 @@ class RouteGuideClient {
  public:
   RouteGuideClient(std::shared_ptr<Channel> channel, const std::string& db)
       : stub_(RouteGuide::NewStub(channel)) {
-    routeguide::ParseDb(db, &feature_list_);
+    //    routeguide::ParseDb(db, &feature_list_);
   }
 
   void GetFeature() {
@@ -99,27 +102,30 @@ class RouteGuideClient {
     GetOneFeature(point, &feature);
   }
 
-  void ListFeatures() {
+  void ListFeatures(int size) {
     routeguide::Rectangle rect;
     Feature feature;
     ClientContext context;
-    Point p;
-
+    Point1 p;
+    /*
     rect.mutable_lo()->set_latitude(400000000);
     rect.mutable_lo()->set_longitude(-750000000);
     rect.mutable_hi()->set_latitude(420000000);
     rect.mutable_hi()->set_longitude(-730000000);
     std::cout << "Looking for features between 40, -75 and 42, -73"
               << std::endl;
-
+    */
     uint64_t begin = GetRDTSC();
-    std::unique_ptr<ClientReader<Point> > reader(
+    /*    std::unique_ptr<ClientReader<Point> > reader(
         stub_->ListFeatures(&context, rect));
     while (reader->Read(&p)) {
-      /*std::cout << "Found feature called "
-                << feature.name() << " at "
-                << feature.location().latitude()/kCoordFactor_ << ", "
-                << feature.location().longitude()/kCoordFactor_ << std::endl;*/
+    }*/
+    routeguide::Rectangle1 rect1;
+    rect1.set_size(size);
+    std::unique_ptr<ClientReader<Point1> > reader(
+						  stub_->ListFeatures1(&context, rect1));	  
+    while (reader->Read(&p)) {
+      //std::cout<<"Reading" << p.data().length() <<std::endl;
     }
     Status status = reader->Finish();
     uint64_t end = GetRDTSC();
@@ -131,9 +137,10 @@ class RouteGuideClient {
     }
   }
 
-  void RecordRoute() {
-    Point point;
-    RouteSummary stats;
+  void RecordRoute(int size) {
+    //    Point point;
+
+    /*    RouteSummary stats;
     ClientContext context;
     const int kPoints = 500;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -141,25 +148,17 @@ class RouteGuideClient {
     std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> feature_distribution(
         0, feature_list_.size() - 1);
-    /*    std::uniform_int_distribution<int> delay_distribution(
-	  500, 1500);*/
-
+  
     std::unique_ptr<ClientWriter<Point> > writer(
         stub_->RecordRoute(&context, &stats));
 
     uint64_t begin = GetRDTSC();
     for (int i = 0; i < kPoints; i++) {
       const Feature& f = feature_list_[feature_distribution(generator)];
-      /*std::cout << "Visiting point "
-                << f.location().latitude()/kCoordFactor_ << ", "
-                << f.location().longitude()/kCoordFactor_ << std::endl;*/
       if (!writer->Write(f.location())) {
         // Broken stream.
         break;
       }
-      /*
-      std::this_thread::sleep_for(std::chrono::milliseconds(
-      delay_distribution(generator)));*/
     }
     writer->WritesDone();
     Status status = writer->Finish();
@@ -176,6 +175,41 @@ class RouteGuideClient {
     } else {
       std::cout << "RecordRoute rpc failed." << std::endl;
     }
+*/
+    //int size = rectangle1->size();
+    ClientContext context;
+    routeguide::Rectangle1 rect1;    
+
+    std::unique_ptr<ClientWriter<Point1> > writer(
+        stub_->RecordRoute1(&context, &rect1));
+
+    std::ifstream myfile("1KB.txt");
+    if (!myfile.is_open()) {
+      std::cerr << "file cannot be opened" << std::endl;
+    }
+    std::string data;
+    getline(myfile,data);
+    Point1 p;
+    p.set_data(data);
+
+    uint64_t begin = GetRDTSC();
+
+    for (int i = 0; i< size; i++) {
+      if (!writer->Write(p)) {
+	std::cout<<"Broken"<<std::endl;
+      }
+    }
+    writer->WritesDone();
+    Status status = writer->Finish();
+    if (status.ok()) {
+      uint64_t end = GetRDTSC();
+      std::cout<< end-begin <<std::endl;
+      std::cout<< "Received size "<<rect1.size() <<std::endl;
+    }
+    else {
+      std::cout<<"RPC failed"<<std::endl;
+    }
+
   }
 
   void RouteChat() {
@@ -244,16 +278,17 @@ class RouteGuideClient {
 
 int main(int argc, char** argv) {
   // Expect only arg: --db_path=path/to/route_guide_db.json.
-  std::string db = routeguide::GetDbFileContent(argc, argv);
+  std::string db;// = routeguide::GetDbFileContent(argc, argv);
   RouteGuideClient guide(
-      grpc::CreateChannel("cs838fall2016group123.eastus.cloudapp.azure.com:50051",
+			 grpc::CreateChannel("cs838fall2016group123.eastus.cloudapp.azure.com:50051"/*localhost:50051"*/,
                           grpc::InsecureChannelCredentials()),
       db);
 
   //  std::cout << "-------------- GetFeature --------------" << std::endl;
   //guide.GetFeature();
-  std::cout << "-------------- ListFeatures --------------" << std::endl;
-  guide.ListFeatures();
+  //  std::cout << "-------------- ListFeatures --------------" << std::endl;
+  //  guide.ListFeatures(atoi(argv[1]));
+  guide.RecordRoute(atoi(argv[1]));
   //  std::cout << "-------------- RecordRoute --------------" << std::endl;
   //guide.RecordRoute();
   //std::cout << "-------------- RouteChat --------------" << std::endl;

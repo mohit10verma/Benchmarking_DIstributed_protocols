@@ -27,13 +27,19 @@ class Iface(shared.SharedService.Iface):
   Ahh, now onto the cool part, defining a service. Services just need a name
   and can optionally inherit from another service using the extends keyword.
   """
-  def ping(self):
+  def SayHello(self, request):
     """
     A method definition looks like C code. It has a return type, arguments,
     and optionally a list of exceptions that it may throw. Note that argument
     lists and exception lists are specified using the exact same syntax as
     field lists in struct or exception definitions.
+
+    Parameters:
+     - request
     """
+    pass
+
+  def ping(self):
     pass
 
   def add(self, num1, num2):
@@ -54,6 +60,7 @@ class Iface(shared.SharedService.Iface):
 
   def zip(self):
     """
+
     This method has a oneway modifier. That means the client only makes
     a request and does not listen for any response at all. Oneway methods
     must be void.
@@ -69,13 +76,44 @@ class Client(shared.SharedService.Client, Iface):
   def __init__(self, transport, iprot_factory, oprot_factory=None):
     shared.SharedService.Client.__init__(self, transport, iprot_factory, oprot_factory)
 
-  def ping(self):
+  def SayHello(self, request):
     """
     A method definition looks like C code. It has a return type, arguments,
     and optionally a list of exceptions that it may throw. Note that argument
     lists and exception lists are specified using the exact same syntax as
     field lists in struct or exception definitions.
+
+    Parameters:
+     - request
     """
+    self._seqid += 1
+    future = self._reqs[self._seqid] = concurrent.Future()
+    self.send_SayHello(request)
+    return future
+
+  def send_SayHello(self, request):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('SayHello', TMessageType.CALL, self._seqid)
+    args = SayHello_args()
+    args.request = request
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_SayHello(self, iprot, mtype, rseqid):
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = SayHello_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "SayHello failed: unknown result")
+
+  def ping(self):
     self._seqid += 1
     future = self._reqs[self._seqid] = concurrent.Future()
     self.send_ping()
@@ -172,6 +210,7 @@ class Client(shared.SharedService.Client, Iface):
 
   def zip(self):
     """
+
     This method has a oneway modifier. That means the client only makes
     a request and does not listen for any response at all. Oneway methods
     must be void.
@@ -190,6 +229,7 @@ class Client(shared.SharedService.Client, Iface):
 class Processor(shared.SharedService.Processor, Iface, TProcessor):
   def __init__(self, handler):
     shared.SharedService.Processor.__init__(self, handler)
+    self._processMap["SayHello"] = Processor.process_SayHello
     self._processMap["ping"] = Processor.process_ping
     self._processMap["add"] = Processor.process_add
     self._processMap["calculate"] = Processor.process_calculate
@@ -208,6 +248,18 @@ class Processor(shared.SharedService.Processor, Iface, TProcessor):
       return
     else:
       return self._processMap[name](self, seqid, iprot, oprot)
+
+  @gen.coroutine
+  def process_SayHello(self, seqid, iprot, oprot):
+    args = SayHello_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = SayHello_result()
+    result.success = yield gen.maybe_future(self._handler.SayHello(args.request))
+    oprot.writeMessageBegin("SayHello", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
 
   @gen.coroutine
   def process_ping(self, seqid, iprot, oprot):
@@ -257,6 +309,135 @@ class Processor(shared.SharedService.Processor, Iface, TProcessor):
 
 
 # HELPER FUNCTIONS AND STRUCTURES
+
+class SayHello_args:
+  """
+  Attributes:
+   - request
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'request', None, None, ), # 1
+  )
+
+  def __init__(self, request=None,):
+    self.request = request
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.request = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('SayHello_args')
+    if self.request is not None:
+      oprot.writeFieldBegin('request', TType.STRING, 1)
+      oprot.writeString(self.request)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.request)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class SayHello_result:
+  """
+  Attributes:
+   - success
+  """
+
+  thrift_spec = (
+    (0, TType.STRING, 'success', None, None, ), # 0
+  )
+
+  def __init__(self, success=None,):
+    self.success = success
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.STRING:
+          self.success = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('SayHello_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.STRING, 0)
+      oprot.writeString(self.success)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
 
 class ping_args:
 

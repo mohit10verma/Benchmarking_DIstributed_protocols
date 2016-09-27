@@ -54,11 +54,15 @@ service RouteGuide {
   // huge number of features.
   rpc ListFeatures(Rectangle) returns (stream Point) {}
 
+  rpc ListFeatures1(Rectangle1) returns (stream Point1) {}
+
   // A client-to-server streaming RPC.
   //
   // Accepts a stream of Points on a route being traversed, returning a
   // RouteSummary when traversal is completed.
   rpc RecordRoute(stream Point) returns (RouteSummary) {}
+
+  rpc RecordRoute1(stream Point1) returns (Rectangle1) {}
 
   // A Bidirectional streaming RPC.
   //
@@ -75,6 +79,15 @@ message Point {
   int32 latitude = 1;
   int32 longitude = 2;
 }
+
+message Point1 {
+  string data = 1;
+}
+
+message Rectangle1 {
+  int32 size = 1;
+}
+
 
 // A latitude-longitude rectangle, represented as two diagonally opposite
 // points "lo" and "hi".

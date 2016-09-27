@@ -38,13 +38,18 @@ int send_reliable(int socket, char* buffer, int buffer_len, struct sockaddr_in r
 	uint64_t begin = GetRDTSC();
 
 	start_again:
-	rc = sendto(socket, buffer, sizeof(int)*2 + 1460 , 0, (struct sockaddr *) &remoteServAddr, len);
-
+	//	 cout<<buffer_len<<endl;
+	rc = sendto(socket, buffer, buffer_len , 0, (struct sockaddr *) &remoteServAddr, len);
+	// cout<<rc<<endl;	
+	recv_again:
 	n = recvfrom(socket, &ack_buffer[0], ACK_BUFFER_LEN, 0, (struct sockaddr *) &remoteServAddr, &len );
 
 	if (n > 0) {
+		if ( ack_buffer[0] != (char) global_seq_num ) {
+			goto recv_again;
+		}
 	  //cout << "got ack f : " << n << ack_buffer << endl;
-	  printf("a\n");
+	  //	  printf("a\n");
 	} else {
 	  //		cout << "timeout" << n << endl;
 	  printf("t\n");
@@ -90,7 +95,7 @@ int establish_connection(char* hostname, struct sockaddr_in* remoteServAddr) {
 	//socket opt
 	struct timeval read_timeout;
 	read_timeout.tv_sec = 0;
-	read_timeout.tv_usec = 10000;
+	read_timeout.tv_usec = 230;
 	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
 	// bind any port
@@ -110,7 +115,11 @@ int connect(int argc, char* argv[]) {
 	check_args(argc, argv);
 	int s = establish_connection(argv[1], &remoteServAddr);
 	// send data
-	ifstream myfile ("data.txt");
+	string filename;
+	filename = "long.dat";
+	if (argc >= 3)
+		filename = argv[2];
+	ifstream myfile(filename.c_str());
 	if (!myfile.is_open()) {
 	  cerr << "File opening error" <<endl;
 	}

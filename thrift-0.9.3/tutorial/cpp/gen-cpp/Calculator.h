@@ -28,12 +28,16 @@ class CalculatorIf : virtual public  ::shared::SharedServiceIf {
    * and optionally a list of exceptions that it may throw. Note that argument
    * lists and exception lists are specified using the exact same syntax as
    * field lists in struct or exception definitions.
+   * 
+   * @param request
    */
+  virtual void SayHello(std::string& _return, const std::string& request) = 0;
   virtual void ping() = 0;
   virtual int32_t add(const int32_t num1, const int32_t num2) = 0;
   virtual int32_t calculate(const int32_t logid, const Work& w) = 0;
 
   /**
+   * 
    * This method has a oneway modifier. That means the client only makes
    * a request and does not listen for any response at all. Oneway methods
    * must be void.
@@ -68,6 +72,9 @@ class CalculatorIfSingletonFactory : virtual public CalculatorIfFactory {
 class CalculatorNull : virtual public CalculatorIf , virtual public  ::shared::SharedServiceNull {
  public:
   virtual ~CalculatorNull() {}
+  void SayHello(std::string& /* _return */, const std::string& /* request */) {
+    return;
+  }
   void ping() {
     return;
   }
@@ -82,6 +89,110 @@ class CalculatorNull : virtual public CalculatorIf , virtual public  ::shared::S
   void zip() {
     return;
   }
+};
+
+typedef struct _Calculator_SayHello_args__isset {
+  _Calculator_SayHello_args__isset() : request(false) {}
+  bool request :1;
+} _Calculator_SayHello_args__isset;
+
+class Calculator_SayHello_args {
+ public:
+
+  Calculator_SayHello_args(const Calculator_SayHello_args&);
+  Calculator_SayHello_args& operator=(const Calculator_SayHello_args&);
+  Calculator_SayHello_args() : request() {
+  }
+
+  virtual ~Calculator_SayHello_args() throw();
+  std::string request;
+
+  _Calculator_SayHello_args__isset __isset;
+
+  void __set_request(const std::string& val);
+
+  bool operator == (const Calculator_SayHello_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const Calculator_SayHello_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Calculator_SayHello_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Calculator_SayHello_pargs {
+ public:
+
+
+  virtual ~Calculator_SayHello_pargs() throw();
+  const std::string* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Calculator_SayHello_result__isset {
+  _Calculator_SayHello_result__isset() : success(false) {}
+  bool success :1;
+} _Calculator_SayHello_result__isset;
+
+class Calculator_SayHello_result {
+ public:
+
+  Calculator_SayHello_result(const Calculator_SayHello_result&);
+  Calculator_SayHello_result& operator=(const Calculator_SayHello_result&);
+  Calculator_SayHello_result() : success() {
+  }
+
+  virtual ~Calculator_SayHello_result() throw();
+  std::string success;
+
+  _Calculator_SayHello_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const Calculator_SayHello_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const Calculator_SayHello_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Calculator_SayHello_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Calculator_SayHello_presult__isset {
+  _Calculator_SayHello_presult__isset() : success(false) {}
+  bool success :1;
+} _Calculator_SayHello_presult__isset;
+
+class Calculator_SayHello_presult {
+ public:
+
+
+  virtual ~Calculator_SayHello_presult() throw();
+  std::string* success;
+
+  _Calculator_SayHello_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
 };
 
 
@@ -436,6 +547,9 @@ class CalculatorClient : virtual public CalculatorIf, public  ::shared::SharedSe
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void SayHello(std::string& _return, const std::string& request);
+  void send_SayHello(const std::string& request);
+  void recv_SayHello(std::string& _return);
   void ping();
   void send_ping();
   void recv_ping();
@@ -457,6 +571,7 @@ class CalculatorProcessor : public  ::shared::SharedServiceProcessor {
   typedef  void (CalculatorProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
+  void process_SayHello(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_ping(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_calculate(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -465,6 +580,7 @@ class CalculatorProcessor : public  ::shared::SharedServiceProcessor {
   CalculatorProcessor(boost::shared_ptr<CalculatorIf> iface) :
      ::shared::SharedServiceProcessor(iface),
     iface_(iface) {
+    processMap_["SayHello"] = &CalculatorProcessor::process_SayHello;
     processMap_["ping"] = &CalculatorProcessor::process_ping;
     processMap_["add"] = &CalculatorProcessor::process_add;
     processMap_["calculate"] = &CalculatorProcessor::process_calculate;
@@ -502,6 +618,16 @@ class CalculatorMultiface : virtual public CalculatorIf, public  ::shared::Share
     ifaces_.push_back(iface);
   }
  public:
+  void SayHello(std::string& _return, const std::string& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->SayHello(_return, request);
+    }
+    ifaces_[i]->SayHello(_return, request);
+    return;
+  }
+
   void ping() {
     size_t sz = ifaces_.size();
     size_t i = 0;
@@ -554,6 +680,9 @@ class CalculatorConcurrentClient : virtual public CalculatorIf, public  ::shared
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void SayHello(std::string& _return, const std::string& request);
+  int32_t send_SayHello(const std::string& request);
+  void recv_SayHello(std::string& _return, const int32_t seqid);
   void ping();
   int32_t send_ping();
   void recv_ping(const int32_t seqid);

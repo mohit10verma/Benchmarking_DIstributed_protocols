@@ -123,7 +123,7 @@ struct HelloString {
 
 struct PhoneNumber {
   1: string number = "6085719874",
-  2: Operation op = ADD,
+  2: Operation op,
 }
 
 struct Person {
@@ -153,6 +153,8 @@ service Calculator extends shared.SharedService {
    * lists and exception lists are specified using the exact same syntax as
    * field lists in struct or exception definitions.
    */
+   
+   HelloString SayHello(1:HelloString request),
 
    void ping(),
 
@@ -161,6 +163,7 @@ service Calculator extends shared.SharedService {
    i32 calculate(1:i32 logid, 2:Work w) throws (1:InvalidOperation ouch),
 
    /**
+
     * This method has a oneway modifier. That means the client only makes
     * a request and does not listen for any response at all. Oneway methods
     * must be void.

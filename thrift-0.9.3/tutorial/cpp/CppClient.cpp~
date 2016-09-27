@@ -35,9 +35,9 @@ using namespace tutorial;
 using namespace shared;
 
 int main() {
-  //  boost::shared_ptr<TTransport> socket(new TSocket("localhost", 9090));
-  //  boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-  boost::shared_ptr<TMemoryBuffer> transport(new TMemoryBuffer());
+  boost::shared_ptr<TTransport> socket(new TSocket("cs838fall2016group123.eastus.cloudapp.azure.com", 9090));
+  boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+  //boost::shared_ptr<TMemoryBuffer> transport(new TMemoryBuffer());
   boost::shared_ptr<TBinaryProtocol> protocol(new TBinaryProtocol(transport));
   CalculatorClient client(protocol);
 
@@ -71,20 +71,35 @@ int main() {
   uint64_t end = GetRDTSC();*/
 
   //Marshalling time of a structure
-  Person abc;
+  /*  Person abc;
   abc.name = "Mohit Verma";
   abc.id = 12356988;
   abc.email = "mohit93@cs.wisc.edu";
   abc.phone.number= "682345657687543";
-  abc.phone.op = ((Operation)1);
+  abc.phone.op = Operation::ADD;
   uint64_t begin = GetRDTSC();
   abc.write(protocol.get());
   uint64_t end = GetRDTSC();
   std::cout << "Cycles:" << end - begin << std::endl;
-  /*
+  */
+  ifstream myfile("8KB.txt");
+  if (!myfile.is_open()) {
+    cerr << "File opening error" <<endl;
+  }
   try {
     transport->open();
-
+    string test_string;
+    //test_string = "world";
+    getline(myfile, test_string);
+    string test_return;
+    uint64_t begin = GetRDTSC();
+    client.SayHello(test_return, test_string);
+    uint64_t end = GetRDTSC();
+    
+    cout << test_return.size() << endl;
+    std::cout << "Cycles:" << end - begin << std::endl;
+    //    std::cout << "Client end:" << end << std::endl;
+    /*
     client.ping();
     cout << "ping()" << endl;
 
@@ -115,9 +130,9 @@ int main() {
     SharedStruct ss;
     client.getStruct(ss, 1);
     cout << "Received log: " << ss << endl;
-
+    */
     transport->close();
   } catch (TException& tx) {
     cout << "ERROR: " << tx.what() << endl;
-    }*/
+    }
 }

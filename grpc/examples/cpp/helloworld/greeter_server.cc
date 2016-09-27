@@ -52,17 +52,17 @@ using helloworld::Greeter;
 class GreeterServiceImpl final : public Greeter::Service {
   Status SayHello(ServerContext* context, const HelloRequest* request,
                   HelloReply* reply) override {
-    uint64_t begin, end;
-    begin = GetRDTSC();
+    //    uint64_t begin, end;
+    //    begin = GetRDTSC();
     //    std::string prefix("world");
+    //    std::cout << request->name() <<std::endl;
+    std::string prefix("A");
 
-    std::string prefix("fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdf1fqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjka12wertyuasdfgfqwertyuasdfghjkafqwertyuafgfghjkafqwlktyuasdfghjkaklwertyu67df1");
 
-
-    reply->set_message(prefix + request->name());
-    end = GetRDTSC();
-    std::cout << begin << std::endl;
-    std::cout << end << std::endl;
+    reply->set_message(prefix);
+    //    end = GetRDTSC();
+    //    std::cout << begin << std::endl;
+    //    std::cout << end << std::endl;
 
     return Status::OK;
   }
@@ -88,6 +88,7 @@ void RunServer() {
 }
 
 int main(int argc, char** argv) {
+  SetAffinity(1);
   RunServer();
 
   return 0;

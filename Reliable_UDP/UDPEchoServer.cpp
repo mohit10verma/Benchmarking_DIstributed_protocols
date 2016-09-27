@@ -27,7 +27,7 @@ void identify(char *exeName)
 
 class UDPServer {
 private:
-    static const short unsigned int BufferSize = sizeof(int)*2 + 65507;
+    static const short unsigned int BufferSize = sizeof(int)*2 + 65499;
 	uint16_t m_port;
 	char m_buffer[BufferSize];
 	int m_socket;
@@ -104,6 +104,7 @@ const char* UDPServer::receive(sockaddr_in* clientAddress, unsigned int len)
 	// clear buffer and receive messages
 	// clearBuffer();
 	int n = recvfrom(m_socket, m_buffer, BufferSize, 0, (struct sockaddr *) clientAddress, &len);
+	//cout << "Received n:" <<n << endl;
 	if (n < 0) {
 		// received dirty data
 		return NULL;
@@ -118,7 +119,8 @@ bool UDPServer::should_drop() {
 }
 
 void UDPServer::send_ack(sockaddr_in clientAddress, unsigned int len) {
-	char *ack = (char*) "A";
+	char* ack = new char[1];
+	*ack = (char) global_seq_num; 
 	sendto(m_socket, ack, 1, 0, (struct sockaddr *) &clientAddress, len);
 }
 
@@ -131,7 +133,9 @@ const Packet* UDPServer::receive_reliable()
 		this->receive(&clientAddress, sizeof (clientAddress));
 		if (!should_drop()) {
 			// result = (Packet*) m_buffer;
+		  //cout <<"1st 8 bytes"<< (int)(*m_buffer) << " " << (int)(*(m_buffer+4))<<endl;
             result = deserialize(m_buffer);
+	    //cout<<"Psckets:s length"<<result->length<<endl;
 			if (result->seq_num > global_seq_num) {
 				global_seq_num = result->seq_num;
 				this->send_ack(clientAddress, sizeof (clientAddress));
@@ -149,7 +153,7 @@ const Packet* UDPServer::receive_reliable()
 
 void UDPServer::do_processing(const Packet* pkt) {
 	//print only if new seq number
-	cout << pkt->seq_num << pkt->data << pkt->length << endl;
+    	//cout << pkt->length << endl;
 	//cout << "Received data :|" << pkt->data << "|" << endl;
 }
 
