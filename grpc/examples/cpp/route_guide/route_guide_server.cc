@@ -101,8 +101,10 @@ std::string GetFeatureName(const Point& point,
 
 class RouteGuideImpl final : public RouteGuide::Service {
  public:
+  std::string filename;
   explicit RouteGuideImpl(const std::string& db) {
-    routeguide::ParseDb(db, &feature_list_);
+    //routeguide::ParseDb(db, &feature_list_);
+    filename = db;
   }
 
   Status GetFeature(ServerContext* context, const Point* point,
@@ -137,7 +139,7 @@ class RouteGuideImpl final : public RouteGuide::Service {
                       ServerWriter<Point1>* writer) override {
     //    std::cout << "I am called "<< std::endl;
     int size = rectangle1->size();
-    std::ifstream myfile("1KB.txt");
+    std::ifstream myfile(filename);
     if (!myfile.is_open()) {
 	  std::cerr << "file cannot be opened" << std::endl;
     }    
@@ -232,7 +234,7 @@ void RunServer(const std::string& db_path) {
 
 int main(int argc, char** argv) {
   // Expect only arg: --db_path=path/to/route_guide_db.json.
-  std::string db = routeguide::GetDbFileContent(argc, argv);
+  std::string db = argv[1];//routeguide::GetDbFileContent(argc, argv);
   RunServer(db);
 
   return 0;

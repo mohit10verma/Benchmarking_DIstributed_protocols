@@ -137,7 +137,7 @@ class RouteGuideClient {
     }
   }
 
-  void RecordRoute(int size) {
+  void RecordRoute(std::string filename) {
     //    Point point;
 
     /*    RouteSummary stats;
@@ -183,7 +183,7 @@ class RouteGuideClient {
     std::unique_ptr<ClientWriter<Point1> > writer(
         stub_->RecordRoute1(&context, &rect1));
 
-    std::ifstream myfile("1KB.txt");
+    std::ifstream myfile(filename);
     if (!myfile.is_open()) {
       std::cerr << "file cannot be opened" << std::endl;
     }
@@ -194,7 +194,7 @@ class RouteGuideClient {
 
     uint64_t begin = GetRDTSC();
 
-    for (int i = 0; i< size; i++) {
+    for (int i = 0; i< 100; i++) {
       if (!writer->Write(p)) {
 	std::cout<<"Broken"<<std::endl;
       }
@@ -287,8 +287,8 @@ int main(int argc, char** argv) {
   //  std::cout << "-------------- GetFeature --------------" << std::endl;
   //guide.GetFeature();
   //  std::cout << "-------------- ListFeatures --------------" << std::endl;
-  //  guide.ListFeatures(atoi(argv[1]));
-  guide.RecordRoute(atoi(argv[1]));
+  // guide.ListFeatures(100);
+  guide.RecordRoute(argv[1]);
   //  std::cout << "-------------- RecordRoute --------------" << std::endl;
   //guide.RecordRoute();
   //std::cout << "-------------- RouteChat --------------" << std::endl;

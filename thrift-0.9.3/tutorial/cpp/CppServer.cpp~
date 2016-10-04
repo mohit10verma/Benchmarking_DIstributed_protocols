@@ -54,11 +54,12 @@ public:
   void ping() { cout << "ping()" << endl; }
 
   void SayHello(string& reply, const string& req) {
-    uint64_t begin = GetRDTSC();
+    //    uint64_t begin = GetRDTSC();
+    //    std::cout<<"Rpc recefvevwrg"<< req.length()<<endl;
     reply = req;
-    uint64_t end = GetRDTSC();
-    std::cout<< "server begin:"<<begin<<std::endl;
-    std::cout<< "server end:"<<end<<std::endl;
+    //    uint64_t end = GetRDTSC();
+    //    std::cout<< "server begin:"<<begin<<std::endl;
+    //    std::cout<< "server end:"<<end<<std::endl;
   }
 
   int32_t add(const int32_t n1, const int32_t n2) {

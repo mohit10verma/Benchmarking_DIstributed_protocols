@@ -34,44 +34,46 @@ using namespace apache::thrift::transport;
 using namespace tutorial;
 using namespace shared;
 
-int main() {
-  boost::shared_ptr<TTransport> socket(new TSocket("cs838fall2016group123.eastus.cloudapp.azure.com", 9090));
-  boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-  //boost::shared_ptr<TMemoryBuffer> transport(new TMemoryBuffer());
+int main(int argc, char** argv) {
+  //boost::shared_ptr<TTransport> socket(new TSocket(argv[2]/*"cs838fall2016group123.eastus.cloudapp.azure.com""localhost"*/, 9090));
+  //boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+  boost::shared_ptr<TMemoryBuffer> transport(new TMemoryBuffer());
   boost::shared_ptr<TBinaryProtocol> protocol(new TBinaryProtocol(transport));
-  CalculatorClient client(protocol);
+  //CalculatorClient client(protocol);
 
   //Marshalling time of int
-  /*  HelloInt test_int;
-  test_int.value = 17698234;
+/*  HelloInt test_int;
+  test_int.value = atoi(argv[1]);//17698234;
   uint64_t begin = GetRDTSC();
   test_int.write(protocol.get());
   uint64_t end = GetRDTSC();
-  */
-
+   std::cout  << end - begin << std::endl;
+*/
   //Marshalling time of double
-  /*    
+      
   HelloDouble test_double;
   test_double.value = 17698234.12354;
   uint64_t begin = GetRDTSC();
   test_double.write(protocol.get());
   uint64_t end = GetRDTSC();
-  */
+    std::cout  << end - begin << std::endl;
+
 
   //Marshalling time of string of varying sizes
-  /*  ifstream myfile("512B.txt");
+  /*ifstream myfile(argv[1]);
   if (!myfile.is_open()) {
     cerr << "File opening error" <<endl;
   }
   HelloString test_string;  
   getline(myfile,test_string.name); 
-  cout<<test_string.name.length()<<endl;
+  // cout<<test_string.name.length()<<endl;
   uint64_t begin = GetRDTSC();
   test_string.write(protocol.get());
-  uint64_t end = GetRDTSC();*/
-
+  uint64_t end = GetRDTSC();
+  std::cout << end - begin << std::endl;
+  */
   //Marshalling time of a structure
-  /*  Person abc;
+/*    Person abc;
   abc.name = "Mohit Verma";
   abc.id = 12356988;
   abc.email = "mohit93@cs.wisc.edu";
@@ -80,9 +82,12 @@ int main() {
   uint64_t begin = GetRDTSC();
   abc.write(protocol.get());
   uint64_t end = GetRDTSC();
-  std::cout << "Cycles:" << end - begin << std::endl;
+  std::cout << end - begin << std::endl;
   */
-  ifstream myfile("16KB.txt");
+  return 0;
+  
+  /*
+  ifstream myfile(argv[1]);
   if (!myfile.is_open()) {
     cerr << "File opening error" <<endl;
   }
@@ -93,11 +98,19 @@ int main() {
     getline(myfile, test_string);
     string test_return;
     uint64_t begin = GetRDTSC();
-    client.SayHello(test_return, test_string);
     uint64_t end = GetRDTSC();
+    for (int i=0; i<10; i++) {
+        begin = GetRDTSC();
+        client.SayHello(test_return, test_string);
+	end = GetRDTSC();
+	cout << end - begin << endl;
+    }
+    end = GetRDTSC();
     
     cout << test_return.size() << endl;
-    std::cout << "Cycles:" << end - begin << std::endl;
+    // comment ends here */
+
+    // std::cout  << end - begin << std::endl;
     //    std::cout << "Client end:" << end << std::endl;
     /*
     client.ping();
@@ -131,8 +144,8 @@ int main() {
     client.getStruct(ss, 1);
     cout << "Received log: " << ss << endl;
     */
-    transport->close();
-  } catch (TException& tx) {
+    /* transport->close(); */ 
+  /*} catch (TException& tx) {
     cout << "ERROR: " << tx.what() << endl;
-    }
+    }*/
 }

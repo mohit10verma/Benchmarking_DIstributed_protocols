@@ -1,0 +1,34 @@
+#include<stdio.h>
+#include<string.h>
+#include<pthread.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<time.h>
+#include <sys/time.h>
+#include"mytimer.h"
+
+pthread_mutex_t lock;
+
+int main(void)
+{
+  int i = 0;
+  int err;
+  unsigned long long a,b;
+
+  if (pthread_mutex_init(&lock, NULL) != 0)
+    {
+      printf("\n mutex init failed\n");
+      return 1;
+    }
+
+  a = GetRDTSC(); 
+  pthread_mutex_lock(&lock);
+  b = GetRDTSC();
+  printf("Time %llu\n", b - a);
+
+
+    
+  pthread_mutex_destroy(&lock);
+
+  return 0;
+}

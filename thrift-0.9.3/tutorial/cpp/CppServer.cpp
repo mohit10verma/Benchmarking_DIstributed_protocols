@@ -55,7 +55,8 @@ public:
 
   void SayHello(string& reply, const string& req) {
     //    uint64_t begin = GetRDTSC();
-    reply = req;
+    //    std::cout<<"Rpc recefvevwrg"<< req.length()<<endl;
+    reply = "A";
     //    uint64_t end = GetRDTSC();
     //    std::cout<< "server begin:"<<begin<<std::endl;
     //    std::cout<< "server end:"<<end<<std::endl;

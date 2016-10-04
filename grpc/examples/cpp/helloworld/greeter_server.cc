@@ -52,17 +52,17 @@ using helloworld::Greeter;
 class GreeterServiceImpl final : public Greeter::Service {
   Status SayHello(ServerContext* context, const HelloRequest* request,
                   HelloReply* reply) override {
-    //    uint64_t begin, end;
-    //    begin = GetRDTSC();
+        uint64_t begin, end;
+        begin = GetRDTSC();
     //    std::string prefix("world");
     //    std::cout << request->name() <<std::endl;
     std::string prefix("A");
 
 
     reply->set_message(prefix);
-    //    end = GetRDTSC();
-    //    std::cout << begin << std::endl;
-    //    std::cout << end << std::endl;
+    end = GetRDTSC();
+    std::cout << begin << std::endl;
+    std::cout << end << std::endl;
 
     return Status::OK;
   }

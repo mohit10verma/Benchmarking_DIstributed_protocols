@@ -1,4 +1,4 @@
-/*
+/* 
  *
  * Copyright 2015, Google Inc.
  * All rights reserved.
@@ -78,8 +78,12 @@ class GreeterClient {
 			ClientContext context;
 
 			// The actual RPC.
+			uint64_t begin, end;
+			begin = GetRDTSC();
 			Status status = stub_->SayHello(&context, request, &reply);
-
+			end = GetRDTSC();
+			std::cout << begin << std::endl;
+			std::cout << end << std::endl;
 			// Act upon its status.
 			if (status.ok()) {
 				return reply.message();
@@ -112,7 +116,7 @@ uint64_t gettimetomarshall(const::std::string& str) { //Returns number of cycles
 	HelloRequest req;
 	req.set_name(str);
 	void* data = (void*) new char[str.length()];
-
+	//std::cout << str.length() << std::endl;
 	start = GetRDTSC();
 	req.SerializeToArray(data, str.length());
 	end = GetRDTSC();
@@ -167,7 +171,7 @@ uint64_t gettimetomarshallstruct(void) {
 	a = p.add_phone();
 	a->set_type((Person_PhoneType)1);
 	a->set_number("682345657687543");
-	std::cout<<"struct size"<<sizeof(p)<<std::endl;
+	//std::cout<<"struct size"<<sizeof(p)<<std::endl;
 	void* data = (void*) new char[p.ByteSize()];
 
 	start = GetRDTSC();
@@ -193,23 +197,30 @@ int main(int argc, char** argv) {
 	if (!myfile.is_open()) {
 	  std::cerr << "file cannot be opened" << std::endl;
 	}
-	GreeterClient greeter(grpc::CreateChannel(
-						  "cs838fall2016group123.eastus.cloudapp.azure.com:50051"/*"127.0.0.1:50051"*/, grpc::InsecureChannelCredentials()));
+	GreeterClient greeter(grpc::CreateChannel(argv[2]
+						  /*"cs838fall2016group123.eastus.cloudapp.azure.com:50051""127.0.0.1:50051"*/, grpc::InsecureChannelCredentials()));
+	
 	std::string data;
 	getline(myfile,data);
 	uint64_t begin, end, time = 0;
-
+	
 	//time=	gettimetomarshallstruct();
-	//time = gettimetomarshall("fasasddsfssdxcgvjhjkbkjhiouiytrszdxffjghjkl,vccseertyryuuiijoiuyytrefssddsfsfasasddsfssddsfsfasasddsfssdds1234348680kjhg2143567");
+	//time = gettimetomarshall(data);
 	begin = GetRDTSC();
-	std::string reply = greeter.SayHello(data);
+	std::string reply;
+	for (int i = 0; i < 1; i++) {
+		begin = GetRDTSC();
+		reply = greeter.SayHello(data);
+		end = GetRDTSC();
+		//	std::cout <<end-begin << std::endl;
+	}
 	end = GetRDTSC();
 	//	std::cout << begin << std::endl;
-	std::cout <<end-begin << std::endl;
+	// std::cout <<end-begin << std::endl;
 	//time = gettimetomarshall(3898990713.00);
-	//time = gettimetomarshall(3898);
+	//time = gettimetomarshall(atoi(argv[1]));
 	//	time = gettimet
-	//time = gettimetomarshallstruct();
+	//	time = gettimetomarshallstruct();
 	std::cout << "Greeter received: " << reply << std::endl;
 	myfile.close();
 	return 0;

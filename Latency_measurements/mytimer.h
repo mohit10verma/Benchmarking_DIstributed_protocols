@@ -1,4 +1,4 @@
-uint64_t GetRDTSC() {
+unsigned long long int GetRDTSC() {
   volatile int dont_remove __attribute__((unused)); // volatile to stop optimizing                                                                                                 
   unsigned hi, lo, a, b;
 
